@@ -5,6 +5,8 @@ build/
 dist/
 wheels/
 *.egg-info
+data/
+chromadb-data-geralt/
 
 # Virtual environments
 .venv
