@@ -4,17 +4,38 @@ from difflib import SequenceMatcher
 import re
 import gradio as gr
 
+"""
+Postal Code and Location Finder for Austria
+
+This Gradio application allows users to find postal codes and location names for Austria.
+It provides two search modes:
+1. Exact search: Enter a 4-digit postal code to get the corresponding location name
+2. Fuzzy search: Enter a location name to find matching postal codes (with similarity matching)
+
+The application uses data from PLZ_Verzeichnis_OKT25.xlsx which contains Austrian postal codes and locations.
+"""
+
 def find_postal_code_or_location(input_string, num_results, file_path="PLZ_Verzeichnis_OKT25.xlsx"):
     """
-    Find postal codes and location names from an Excel file.
+    Find postal codes and location names from an Excel file based on user input.
+    
+    This function supports two search modes:
+    - Exact search: If input is a 4-digit number, it performs an exact match against postal codes
+    - Fuzzy search: If input is text, it performs similarity matching against location names
     
     Args:
-        file_path (str): Path to the Excel file
-        input_string (str): Input string to search for
+        input_string (str): The search query (postal code or location name)
+        num_results (int): Number of results to return (for fuzzy search)
+        file_path (str): Path to the Excel file containing postal code data (default: "PLZ_Verzeichnis_OKT25.xlsx")
     
     Returns:
-        If input is a 4-digit number: location name
-        If input is not a number: list of tuples (postal_code, location_name) sorted by similarity
+        list: List of results in format [[postal_code, location_name], ...]
+              For exact match: single result or 'Not found' if no match
+              For fuzzy search: up to num_results sorted by similarity score
+              
+    Example:
+        Input: "1010" -> Returns: [["1010", "Wien"]]
+        Input: "wien" -> Returns: List of locations similar to "wien" sorted by similarity
     """
     
     try:
@@ -27,7 +48,7 @@ def find_postal_code_or_location(input_string, num_results, file_path="PLZ_Verze
         # Convert PLZ to string to handle any potential formatting issues
         df['PLZ'] = df['PLZ'].astype(str).str.strip()
         
-        # Check if input is a 4-digit number
+        # Check if input is a 4-digit number (exact postal code search)
         if re.match(r'^\d{4}$', input_string):
             # Convert to integer for matching
             postal_code = int(input_string)
@@ -36,12 +57,12 @@ def find_postal_code_or_location(input_string, num_results, file_path="PLZ_Verze
             matching_row = df[df['PLZ'].str.strip() == str(postal_code)]
             
             if not matching_row.empty:
-                return [[matching_row.iloc[0]['PLZ'],matching_row.iloc[0]['Ort']]]
+                return [[matching_row.iloc[0]['PLZ'], matching_row.iloc[0]['Ort']]]
             else:
-                return [['Not found','Not in the data set']]
+                return [['Not found', 'Not in the data set']]
         
         else:
-            # Input is not a 4-digit number, perform fuzzy matching
+            # Input is not a 4-digit number, perform fuzzy matching (location name search)
             input_lower = input_string.lower()
             
             # Calculate similarity scores using SequenceMatcher (which is based on Levenshtein distance)
@@ -54,7 +75,7 @@ def find_postal_code_or_location(input_string, num_results, file_path="PLZ_Verze
             # Filter out very low similarities (threshold can be adjusted)
             filtered_df = df[df['similarity'] > 0.1]
             
-            # Sort by similarity (descending) and limit to 10 results
+            # Sort by similarity (descending) and limit to num_results
             result = filtered_df.sort_values('similarity', ascending=False)[['PLZ', 'Ort']].head(num_results).values.tolist()
             
             return result
@@ -64,18 +85,30 @@ def find_postal_code_or_location(input_string, num_results, file_path="PLZ_Verze
     except Exception as e:
         raise Exception(f"Error processing file: {str(e)}")
 
+
 def get_postal_code(text_in, num_results):
+    """
+    Wrapper function to call find_postal_code_or_location with appropriate parameters.
+    
+    Args:
+        text_in (str): The search query (postal code or location name)
+        num_results (int): Number of results to return for fuzzy search
+    """
     return find_postal_code_or_location(text_in, num_results)
 
+
+# Create the Gradio interface
 demo = gr.Interface(
     fn=get_postal_code,
     inputs=["text"],
-    additional_inputs=[gr.Slider(value=10, minimum=1, maximum=100, step=1)],
+    additional_inputs=[gr.Slider(value=10, minimum=1, maximum=100, step=1, label="Number of Results")],
     outputs=[gr.List(
-            label="Names", headers=["PLZ", "Ort"],
+            label="Results", headers=["PLZ", "Ort"],
             show_copy_button=True,
             col_count=2
         )],
+    title="Austrian Postal Code Finder",
+    description="Enter a 4-digit postal code for exact match or a location name for fuzzy search. Results are sorted by relevance.",
 )
 
 demo.launch()

@@ -13,6 +13,22 @@ import gradio as gr
 from openai import OpenAI
 import chromadb
 
+geralt_context = """Geralt of Rivia is a legendary witcher from Andrzej Sapkowski's fantasy series The Witcher. Born as the son of sorceress Visenna and warrior Korin around 1211, he was raised at Kaer Morhen in Kaedwen. Geralt survived the Trial of The Grasses, gaining superhuman abilities such as heightened senses, strength, speed, resilience, complete immunity to conventional poisons, extreme pain resistance, and a white coat of hair that gave him the nickname "White Wolf".
+
+Geralt embarked on his journey as a monster slayer for hire. He met his fellow classmate Eskel early on and together they became close friends, likened to brothers. His first contract involved killing a bald man who had abducted a young girl. Geralt's career included numerous adventures across the continent where he slew creatures like manticores, giants, and vampires.
+
+During the Trial of The Grasses, Geralt displayed unusual tolerance for mutagens, which led to further experimental mutations granting him greater abilities but turning his hair white. He trained with Vesemir, regarded as a father figure, and later studied at Oxenfurt Academy under Yennefer's guidance.
+
+Geralt began traveling widely on his horse Roach, taking contracts across the continent, fighting monsters, and assisting allies in various regions including Vizima, Kaedwen, Temeria, and Rivia. His most notable actions include thwarting the attempted assassination of King Foltest’s daughter Adda (turned striga) by curing her condition and discovering the identity of the mysterious Salamandra group that targeted witchers.
+
+In The Witcher 3: Wild Hunt, Geralt sets out to find Ciri, who has been kidnapped by forces including the Wild Hunt. Throughout his journey he confronts various challenges and enemies culminating in defeating the Wild Hunt leader Eredin Bréacc Glas who offers Geralt Yennefer's soul in exchange for her freedom.
+
+Throughout The Witcher series, Geralt maintains alliances with characters like Dandelion, Eskel, Yennefer (initially), Triss Merigold, and later Vengerberg mentors Vesemir and Iola. He navigates complex political landscapes dealing with conflicts between factions such as Nilfgaardian Empire, Scoia'tael rebels, and various local rulers.
+
+Geralt's legacy is marked by his adventures detailed in ballads by Dandelion which romanticize his exploits while historical accounts provide factual insights into significant moments from his life. Despite being a popular figure among fans, accurate chronology sometimes varies between sources due to creative liberties taken during adaptations.
+
+His story encompasses themes of loyalty, sacrifice, moral ambiguity, and personal growth reflecting deep exploration within fantasy narratives set against richly detailed worlds imbued with mythology inspired by Slavic folklore intertwined with broader epic fantasy elements."""
+
 # API configuration for local LLM endpoint
 api_key = "local"
 
@@ -99,7 +115,7 @@ demo = gr.ChatInterface(
     type="messages",
     additional_inputs=[
         gr.Textbox(
-            "You are an expert on Geralt of Rivia, the witcher from the famous series. You answer questions based on the context provided. If the answer is not in the context, say 'I don't know'. Do not make up any information. You do not repeat information. You do not add any commentary. You only provide a factual answer to the question based on the data provided.",
+            "You are an expert on Geralt of Rivia, the witcher from the famous series. You answer questions based on the context provided. If the answer is not in the context, say 'I don't know'. Do not make up any information. You do not repeat information. You do not add any commentary. You only provide a factual answer to the question based on the data provided. This is a general overview on Geralt of Rivia: \n" + geralt_context,
             label="System Prompt",
         ),
         gr.Slider(label="Temperature", minimum=0, maximum=1, value=0.7, step=0.05),
